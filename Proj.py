@@ -17,6 +17,8 @@ data = data[['text', 'cool', 'useful', 'funny']]
 
 data['reaction'] = data['cool'] + data['useful'] + data['funny']
 
+data['reaction'] = data[['cool','useful','funny']].sum(axis = 1)
+
 popular_threshold = np.mean(data['reaction'])
 
 data['popular'] = (data['reaction'] > popular_threshold)
