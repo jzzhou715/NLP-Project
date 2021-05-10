@@ -1,9 +1,11 @@
 # https://www.kaggle.com/omkarsabnis/yelp-reviews-dataset?select=yelp.csv
 
 import pandas as pd
-import matplotlib as plt
 import numpy as np
 from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn import metrics 
 
 # =============================================================================
 # Clean
@@ -27,18 +29,51 @@ data_X = data['text']
 # Vectorize nlp
 # =============================================================================
 
-Vec = CountVectorizer(input='filename',
-                      analyzer = 'word',
+Vec = CountVectorizer(analyzer = 'word',
                       stop_words='english',
                       lowercase = True)
 
-Vec_Bi = CountVectorizer(input='filename',
-                         analyzer = 'word',
+Vec_Bi = CountVectorizer(analyzer = 'word',
                          stop_words='english',
                          lowercase = True,
                          binary=True)
 
 review_vec = pd.DataFrame()
+    
+data_X_t = Vec.fit_transform(data_X.tolist())
 
-path = '/Users/Zhou/Box/GitHub Repository/NLP-Project/yelp.csv'
+features = Vec.get_feature_names()
+
+BoW = pd.DataFrame(data_X_t.toarray(), columns = features)
+
+BoW["Popular"] = data['popular']
+
+BoW.sum()
+
+BoW.sum().plot.hist()
+
+BoW_removeTypo = BoW.loc[:, BoW.sum(axis = 0) > 1]
+
+# =============================================================================
+# Modeling
+# =============================================================================
+
+train, test = train_test_split(BoW_removeTypo, test_size = 0.2)
+
+train_y = train["popular"]
+
+train_X = train.drop(["popular"], axis = 1)
+
+test_y = test["popular"]
+
+test_X = test.drop(["popular"], axis = 1)
+
+log = LogisticRegression()
+
+log.fit(train_X, train_y)
+
+prediction = log.predict(test_X)
+
+print(metrics.classification_report(test_y, prediction))
+print(metrics.confusion_matrix(test_y, prediction))
 
