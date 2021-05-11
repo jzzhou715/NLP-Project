@@ -1,7 +1,11 @@
 import pandas as pd
 import numpy as np
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn import metrics 
 
-class Classifier():
+class TextDataClassifier():
     def __init__(self, dir):
         '''
         Creates an instance of Classifer.
@@ -36,9 +40,52 @@ class Classifier():
         '''
         self.data = self.file[X + y]
         
+    def BoW(self, ana = 'word', sw = 'english', lc = True, bi = False, typo_threshold = 1):
+        '''
+        Process the predictors to prepare for model training
+
+        Parameters
+        ----------
+        ana : str, optional
+            CountVectorizer parameter analyzer. The default is 'word'.
+        sw : str, optional
+            Count Vectorizer parameter stop_wrods. The default is 'english'.
+        lc : str, optional
+            Count Vectorizer parameter lowercase. The default is True.
+        bi : TYPE, optional
+            Count Vectorizer parameter binary. The default is False.
+        typo_threshold : int, optional
+            Set the threshold to remove typo. The default is 1.
+
+        Returns
+        -------
+        None.
+
+        '''
+        Vec = CountVectorizer(analyzer = ana,
+                              stop_words = sw,
+                              lowercase = lc,
+                              binary = bi)
         
+        data_X_t = Vec.fit_transform(self.data.X.tolist())
         
-class SVM(Classifier):
+        features = Vec.get_feature_names()
+        
+        BoW = pd.DataFrame(data_X_t.toarray(), columns = features)
+        
+        BoW['y'] = self.data.y
+        
+        BoW.sum()
+        
+        BoW.sum().plot.hist()
+        
+        BoW_removeTypo = BoW.loc[:, BoW.sum(axis = 0) > typo_threshold]
+        
+        self.BoW_noTypo = BoW_removeTypo
+        
+        print(self.BoW_noTypo.head)
+        
+class SVM(TextDataClassifier):
     def __init__(self, dir):
         '''
         Creates an instance of SVM.
@@ -80,12 +127,12 @@ class SVM(Classifier):
         temp = temp[X + ['y']]
         temp.dropna(subset = ['y'], axis = 0, inplace = True)
 
-        self.data['X'] = temp[X]
         self.data['y'] = temp['y']
+        self.data['X'] = temp[X]
         
         print(self.data.head)
         
-class LogReg(Classifier):
+class LogReg(TextDataClassifier):
     def __init__(self, dir):
         '''
         Creates an instance of SVM.
@@ -113,13 +160,15 @@ class LogReg(Classifier):
         y : str
             Column names that consists of response variable.
         threshold : TYPE
-            DESCRIPTION.
+            A threshold to turn reponse into a binary variable.
 
         Returns
         -------
         None.
 
         '''
+        
+        self.data = pd.DataFrame()
         
         temp = self.file[X + y]
         temp['y_sum'] = temp[y].sum(axis = 1)
@@ -135,10 +184,58 @@ class LogReg(Classifier):
         else:
             raise TypeError('Unsupported input parameter type.')
         temp['y'] = (temp['y_sum'] > th)
-        self.data = temp[X + ['y']]
+        self.data['y'] = temp['y']
+        self.data['X'] = temp[X]
+
         
         print(self.data)
         
+    def LogisticReg(self, test_percent = 0.2):
+        '''
+        Training and testing logistic regression model.
+
+        Parameters
+        ----------
+        test_percent : float, optional
+            Percentage split into testing set. The default is 0.2.
+
+        Returns
+        -------
+        None.
+
+        '''
+        
+        train, test = train_test_split(self.BoW_noTypo, test_size = test_percent)
+
+        train_y = train["y"]
+        
+        train_X = train.drop(["y"], axis = 1)
+        
+        test_y = test["y"]
+        
+        test_X = test.drop(["y"], axis = 1)
+        
+        log = LogisticRegression()
+        
+        log.fit(train_X, train_y)
+        
+        prediction = log.predict(test_X)
+        
+        self.logReport =  metrics.classification_report(test_y, prediction)
+        self.confMat = metrics.confusion_matrix(test_y, prediction)
+        
+        print(self.logReport)
+        print(self.confMat)
+        
 if __name__ == '__main__':
+# =============================================================================
+#     yelp = LogReg('yelp.csv')
+#     yelp.preprocess(X = ['text'], y = ['cool','useful','funny'], threshold = 'mean')
+#     yelp.BoW()
+#     yelp.LogisticReg()
+# =============================================================================
+    
     yelp = SVM('yelp.csv')
     yelp.preprocess(X = ['text'], y = ['cool','useful','funny'])
+    yelp.BoW()
+    
