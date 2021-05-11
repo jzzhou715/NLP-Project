@@ -3,7 +3,8 @@ import numpy as np
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
-from sklearn import metrics 
+from sklearn import metrics
+from sklearn.naive_bayes import MultinomialNB
 
 class TextDataClassifier():
     def __init__(self, dir):
@@ -87,10 +88,10 @@ class TextDataClassifier():
         
         print(self.BoW_noTypo.head)
         
-class SVM(TextDataClassifier):
+class MultiClassifier(TextDataClassifier):
     def __init__(self, dir):
         '''
-        Creates an instance of SVM.
+        Creates an instance of MultiClassifier.
 
         Parameters
         ----------
@@ -128,16 +129,41 @@ class SVM(TextDataClassifier):
         temp['y'] = temp['max'].apply(lambda x: y[x.index(True)]if x.count(True) == 1 else np.nan)
         temp = temp[X + ['y']]
         temp.dropna(subset = ['y'], axis = 0, inplace = True)
+        temp.index = np.arange(len(temp))
 
         self.data['y'] = temp['y']
         self.data['X'] = temp[X]
         
         print(self.data.head)
         
-class LogReg(TextDataClassifier):
+    def NB(self, test_percent = 0.2):
+                
+        train, test = train_test_split(self.BoW_noTypo, test_size = test_percent)
+
+        train_y = train["y"]
+        
+        train_X = train.drop(["y"], axis = 1)
+        
+        test_y = test["y"]
+        
+        test_X = test.drop(["y"], axis = 1)
+        
+        nb = MultinomialNB()
+        
+        nb.fit(train_X, train_y)
+        
+        prediction = nb.predict(test_X)
+        
+        self.logReport =  metrics.classification_report(test_y, prediction)
+        self.confMat = metrics.confusion_matrix(test_y, prediction)
+        
+        print(self.logReport)
+        print(self.confMat)
+        
+class BiClassifier(TextDataClassifier):
     def __init__(self, dir):
         '''
-        Creates an instance of SVM.
+        Creates an instance of BiClassifier.
 
         Parameters
         ----------
@@ -208,7 +234,6 @@ class LogReg(TextDataClassifier):
         '''
         
         train, test = train_test_split(self.BoW_noTypo, test_size = test_percent)
-
         train_y = train["y"]
         
         train_X = train.drop(["y"], axis = 1)
@@ -230,12 +255,13 @@ class LogReg(TextDataClassifier):
         print(self.confMat)
         
 if __name__ == '__main__':
-    yelp_lr = LogReg('yelp.csv')
+    yelp_lr = BiClassifier('yelp.csv')
     yelp_lr.preprocess(X = ['text'], y = ['cool','useful','funny'], threshold = 'mean')
     yelp_lr.BoW(figname = 'lr_hist.png')
     yelp_lr.LogisticReg()
     
-    yelp_svm = SVM('yelp.csv')
-    yelp_svm.preprocess(X = ['text'], y = ['cool','useful','funny'])
-    yelp_svm.BoW(figname = 'svm_hist.png')
+    # yelp_mc = MultiClassifier('yelp.csv')
+    # yelp_mc.preprocess(X = ['text'], y = ['cool','useful','funny'])
+    # yelp_mc.BoW(figname = 'mc_hist.png', typo_threshold = 1)
+    # yelp_mc.NB()
     
