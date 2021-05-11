@@ -40,7 +40,7 @@ class TextDataClassifier():
         '''
         self.data = self.file[X + y]
         
-    def BoW(self, ana = 'word', sw = 'english', lc = True, bi = False, typo_threshold = 1):
+    def BoW(self, figname, ana = 'word', sw = 'english', lc = True, bi = False, typo_threshold = 1):
         '''
         Process the predictors to prepare for model training
 
@@ -73,13 +73,15 @@ class TextDataClassifier():
         
         BoW = pd.DataFrame(data_X_t.toarray(), columns = features)
         
-        BoW['y'] = self.data.y
-        
         BoW.sum()
         
-        BoW.sum().plot.hist()
+        fig = BoW.sum().plot.hist()
+        fig.figure.savefig(figname, dpi = 600)
+        fig.clear()
         
         BoW_removeTypo = BoW.loc[:, BoW.sum(axis = 0) > typo_threshold]
+        
+        BoW_removeTypo['y'] = self.data.y
         
         self.BoW_noTypo = BoW_removeTypo
         
@@ -228,14 +230,12 @@ class LogReg(TextDataClassifier):
         print(self.confMat)
         
 if __name__ == '__main__':
-# =============================================================================
-#     yelp = LogReg('yelp.csv')
-#     yelp.preprocess(X = ['text'], y = ['cool','useful','funny'], threshold = 'mean')
-#     yelp.BoW()
-#     yelp.LogisticReg()
-# =============================================================================
+    yelp_lr = LogReg('yelp.csv')
+    yelp_lr.preprocess(X = ['text'], y = ['cool','useful','funny'], threshold = 'mean')
+    yelp_lr.BoW(figname = 'lr_hist.png')
+    yelp_lr.LogisticReg()
     
-    yelp = SVM('yelp.csv')
-    yelp.preprocess(X = ['text'], y = ['cool','useful','funny'])
-    yelp.BoW()
+    yelp_svm = SVM('yelp.csv')
+    yelp_svm.preprocess(X = ['text'], y = ['cool','useful','funny'])
+    yelp_svm.BoW(figname = 'svm_hist.png')
     
