@@ -260,8 +260,8 @@ if __name__ == '__main__':
     yelp_lr.BoW(figname = 'lr_hist.png')
     yelp_lr.LogisticReg()
     
-    # yelp_mc = MultiClassifier('yelp.csv')
-    # yelp_mc.preprocess(X = ['text'], y = ['cool','useful','funny'])
-    # yelp_mc.BoW(figname = 'mc_hist.png', typo_threshold = 1)
-    # yelp_mc.NB()
+    yelp_mc = MultiClassifier('yelp.csv')
+    yelp_mc.preprocess(X = ['text'], y = ['cool','useful','funny'])
+    yelp_mc.BoW(figname = 'mc_hist.png', typo_threshold = 1)
+    yelp_mc.NB()
     
