@@ -89,8 +89,6 @@ class TextDataClassifier():
         print(self.BoW_noTypo.head)
         
 class BiClassifier(TextDataClassifier):
-    
-
     def __init__(self, dir):
         '''
         Creates an instance of BiClassifier.
@@ -271,7 +269,7 @@ class MultiClassifier(TextDataClassifier):
         
 if __name__ == '__main__':
     yelp_lr = BiClassifier('yelp.csv')
-    yelp_lr.preprocess(X = ['text'], y = ['cool','useful','funny'], threshold = 'mean')
+    yelp_lr.preprocess(X = ['text'], y = ['cool','useful','funny'], threshold = 'median')
     yelp_lr.BoW(figname = 'lr_hist.png')
     yelp_lr.LogisticReg()
     
