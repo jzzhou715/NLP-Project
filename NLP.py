@@ -88,79 +88,9 @@ class TextDataClassifier():
         
         print(self.BoW_noTypo.head)
         
-class MultiClassifier(TextDataClassifier):
-    def __init__(self, dir):
-        '''
-        Creates an instance of MultiClassifier.
-
-        Parameters
-        ----------
-        dir : str
-            directory of the file.
-
-        Returns
-        -------
-        None.
-
-        '''
-        super().__init__(dir)
-        
-    def preprocess(self, X, y):
-        '''
-        Preprocess the data to prepare for model training.
-
-        Parameters
-        ----------
-        X : str
-            Column names that consists of predictors.
-        y : str
-            Column names that consists of response variable.
-
-        Returns
-        -------
-        None.
-
-        '''
-        self.data = pd.DataFrame()
-        
-        temp = self.file
-        temp = self.file[X + y]
-        temp['max'] = temp[y].apply(lambda x: x == x.max(), axis = 1).values.tolist()
-        temp['y'] = temp['max'].apply(lambda x: y[x.index(True)]if x.count(True) == 1 else np.nan)
-        temp = temp[X + ['y']]
-        temp.dropna(subset = ['y'], axis = 0, inplace = True)
-        temp.index = np.arange(len(temp))
-
-        self.data['y'] = temp['y']
-        self.data['X'] = temp[X]
-        
-        print(self.data.head)
-        
-    def NB(self, test_percent = 0.2):
-                
-        train, test = train_test_split(self.BoW_noTypo, test_size = test_percent)
-
-        train_y = train["y"]
-        
-        train_X = train.drop(["y"], axis = 1)
-        
-        test_y = test["y"]
-        
-        test_X = test.drop(["y"], axis = 1)
-        
-        nb = MultinomialNB()
-        
-        nb.fit(train_X, train_y)
-        
-        prediction = nb.predict(test_X)
-        
-        self.logReport =  metrics.classification_report(test_y, prediction)
-        self.confMat = metrics.confusion_matrix(test_y, prediction)
-        
-        print(self.logReport)
-        print(self.confMat)
-        
 class BiClassifier(TextDataClassifier):
+    
+
     def __init__(self, dir):
         '''
         Creates an instance of BiClassifier.
@@ -247,6 +177,91 @@ class BiClassifier(TextDataClassifier):
         log.fit(train_X, train_y)
         
         prediction = log.predict(test_X)
+        
+        self.logReport =  metrics.classification_report(test_y, prediction)
+        self.confMat = metrics.confusion_matrix(test_y, prediction)
+        
+        print(self.logReport)
+        print(self.confMat)
+
+class MultiClassifier(TextDataClassifier):
+    def __init__(self, dir):
+        '''
+        Creates an instance of MultiClassifier.
+
+        Parameters
+        ----------
+        dir : str
+            directory of the file.
+
+        Returns
+        -------
+        None.
+
+        '''
+        super().__init__(dir)
+        
+    def preprocess(self, X, y):
+        '''
+        Preprocess the data to prepare for model training.
+
+        Parameters
+        ----------
+        X : str
+            Column names that consists of predictors.
+        y : str
+            Column names that consists of response variable.
+
+        Returns
+        -------
+        None.
+
+        '''
+        self.data = pd.DataFrame()
+        
+        temp = self.file
+        temp = self.file[X + y]
+        temp['max'] = temp[y].apply(lambda x: x == x.max(), axis = 1).values.tolist()
+        temp['y'] = temp['max'].apply(lambda x: y[x.index(True)]if x.count(True) == 1 else np.nan)
+        temp = temp[X + ['y']]
+        temp.dropna(subset = ['y'], axis = 0, inplace = True)
+        temp.index = np.arange(len(temp))
+
+        self.data['y'] = temp['y']
+        self.data['X'] = temp[X]
+        
+        print(self.data.head)
+        
+    def NB(self, test_percent = 0.2):
+        '''
+        Training and testing naive bayes model.
+
+        Parameters
+        ----------
+        test_percent : TYPE, optional
+            DESCRIPTION. The default is 0.2.
+
+        Returns
+        -------
+        None.
+
+        '''
+                
+        train, test = train_test_split(self.BoW_noTypo, test_size = test_percent)
+
+        train_y = train["y"]
+        
+        train_X = train.drop(["y"], axis = 1)
+        
+        test_y = test["y"]
+        
+        test_X = test.drop(["y"], axis = 1)
+        
+        nb = MultinomialNB()
+        
+        nb.fit(train_X, train_y)
+        
+        prediction = nb.predict(test_X)
         
         self.logReport =  metrics.classification_report(test_y, prediction)
         self.confMat = metrics.confusion_matrix(test_y, prediction)
