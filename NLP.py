@@ -9,7 +9,7 @@ from sklearn.naive_bayes import MultinomialNB
 class TextDataClassifier():
     def __init__(self, dir):
         '''
-        Creates an instance of Classifer.
+        Creates an instance of Classifier.
 
         Parameters
         ----------
@@ -30,9 +30,9 @@ class TextDataClassifier():
         Parameters
         ----------
         X : str
-            Column names that consists of predictors.
+            Column names that consist of predictors.
         y : str
-            Column names that consists of response variable.
+            Column names that consist of response variable.
 
         Returns
         -------
@@ -48,9 +48,9 @@ class TextDataClassifier():
         Parameters
         ----------
         ana : str, optional
-            CountVectorizer parameter analyzer. The default is 'word'.
+            Count Vectorizer parameter analyzer. The default is 'word'.
         sw : str, optional
-            Count Vectorizer parameter stop_wrods. The default is 'english'.
+            Count Vectorizer parameter stop_words. The default is 'english'.
         lc : str, optional
             Count Vectorizer parameter lowercase. The default is True.
         bi : TYPE, optional
@@ -79,7 +79,8 @@ class TextDataClassifier():
         fig = BoW.sum().plot.hist()
         fig.figure.savefig(figname, dpi = 600)
         fig.clear()
-        
+
+        # remove words that only appear 1 time because they are most likely typos
         BoW_removeTypo = BoW.loc[:, BoW.sum(axis = 0) > typo_threshold]
         
         BoW_removeTypo['y'] = self.data.y
@@ -206,9 +207,9 @@ class MultiClassifier(TextDataClassifier):
         Parameters
         ----------
         X : str
-            Column names that consists of predictors.
+            Column names that consist of predictors.
         y : str
-            Column names that consists of response variable.
+            Column names that consist of response variable.
 
         Returns
         -------
