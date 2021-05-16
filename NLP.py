@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import re
+import argparse
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
@@ -282,7 +283,7 @@ class MultiClassifier(TextDataClassifier):
         None.
 
         '''
-                
+
         train, test = train_test_split(self.BoW_noTypo, test_size = test_percent)
 
         train_y = train["y"]
@@ -299,34 +300,42 @@ class MultiClassifier(TextDataClassifier):
         
         prediction = nb.predict(test_X)
         
-        self.logReport =  metrics.classification_report(test_y, prediction)
+        self.logReport = metrics.classification_report(test_y, prediction)
         self.confMat = metrics.confusion_matrix(test_y, prediction)
         
         print(self.logReport)
         print(self.confMat)
-        
-if __name__ == '__main__':
+
+
+def main(datafile):
     # logistic regression
-    yelp_lr = BiClassifier('yelp.csv')
-    yelp_lr.preprocess(X = ['text'], y = ['cool','useful','funny'], threshold = 'median')
-    yelp_lr.BoW(figname = 'lr_hist.png')
+    yelp_lr = BiClassifier(datafile)
+    yelp_lr.preprocess(X=['text'], y=['cool', 'useful', 'funny'], threshold='mean')
+    yelp_lr.BoW(figname='lr_hist.png')
     yelp_lr.LogisticReg()
 
     # logistic regression with stemmer
-    yelp_lr = BiClassifier('yelp.csv')
-    yelp_lr.preprocess(X=['text'], y=['cool', 'useful', 'funny'], threshold='median')
+    yelp_lr = BiClassifier(datafile)
+    yelp_lr.preprocess(X=['text'], y=['cool', 'useful', 'funny'], threshold='mean')
     yelp_lr.BoW(figname='lr_hist.png', st=True)
     yelp_lr.LogisticReg()
 
     # multi-classifier
-    yelp_mc = MultiClassifier('yelp.csv')
-    yelp_mc.preprocess(X = ['text'], y = ['cool','useful','funny'])
-    yelp_mc.BoW(figname = 'mc_hist.png', typo_threshold = 1)
+    yelp_mc = MultiClassifier(datafile)
+    yelp_mc.preprocess(X=['text'], y=['cool', 'useful', 'funny'])
+    yelp_mc.BoW(figname='mc_hist.png', typo_threshold=1)
     yelp_mc.NB()
 
     # multi-classifier with stemmer
-    yelp_mc = MultiClassifier('yelp.csv')
+    yelp_mc = MultiClassifier(datafile)
     yelp_mc.preprocess(X=['text'], y=['cool', 'useful', 'funny'])
     yelp_mc.BoW(figname='mc_hist.png', st=True, typo_threshold=1)
     yelp_mc.NB()
-    
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--df", type=str, default="yelp.csv", help='comma separated data of yelp review document')
+    args = parser.parse_args()
+
+    main(args.df)
