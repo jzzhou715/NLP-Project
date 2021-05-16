@@ -5,6 +5,33 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn import metrics
 from sklearn.naive_bayes import MultinomialNB
+from nltk.stem import PorterStemmer
+import re
+import sys
+
+def stem(str_input):
+    '''
+    :param str_input:
+    :return words:
+
+    A stand-alone function that stems a sentence
+    '''
+
+    # took logic from sklearn's default tokenizer
+    # so that all the preprocessing remains the same
+    # while adding a stemmer at the end
+    token_pattern = re.compile(r"(?u)\b\w\w+\b")
+
+    if token_pattern.groups > 1:
+        raise ValueError(
+            "More than 1 capturing group in token pattern. Only a single "
+            "group should be captured."
+        )
+
+    words = token_pattern.findall(str_input)
+    ps = PorterStemmer()
+    words = [ps.stem(word) for word in words]
+    return words
 
 class TextDataClassifier():
     def __init__(self, dir):
@@ -41,7 +68,7 @@ class TextDataClassifier():
         '''
         self.data = self.file[X + y]
         
-    def BoW(self, figname, ana = 'word', sw = 'english', lc = True, bi = False, typo_threshold = 1):
+    def BoW(self, figname, ana = 'word', sw = 'english', lc = True, bi = False, st = False, typo_threshold = 1):
         '''
         Process the predictors to prepare for model training
 
@@ -63,15 +90,28 @@ class TextDataClassifier():
         None.
 
         '''
-        Vec = CountVectorizer(analyzer = ana,
-                              stop_words = sw,
-                              lowercase = lc,
-                              binary = bi)
+
+        #print("X", self.data.X.toList())
+        # print("y", self.data.y)
+        # sys.exit()
+
+        if st:
+            Vec = CountVectorizer(analyzer=ana,
+                                  stop_words=sw,
+                                  lowercase=lc,
+                                  binary=bi,
+                                  tokenizer=stem)
+        else:
+            Vec = CountVectorizer(analyzer = ana,
+                                  stop_words = sw,
+                                  lowercase = lc,
+                                  binary = bi)
         
         data_X_t = Vec.fit_transform(self.data.X.tolist())
         
         features = Vec.get_feature_names()
-        
+        # print(features)
+
         BoW = pd.DataFrame(data_X_t.toarray(), columns = features)
         
         BoW.sum()
@@ -158,8 +198,8 @@ class MultiClassifier(TextDataClassifier):
         self.logReport = metrics.classification_report(test_y, prediction)
         self.confMat = metrics.confusion_matrix(test_y, prediction)
         
-        print(self.logReport)
-        print(self.confMat)
+        print("NB classification report:\n", self.logReport)
+        print("NB confusion matrix:\n", self.confMat)
         
 class BiClassifier(TextDataClassifier):
     def __init__(self, dir):
@@ -196,7 +236,8 @@ class BiClassifier(TextDataClassifier):
         None.
 
         '''
-        
+
+
         self.data = pd.DataFrame()
         
         temp = self.file[X + y]
@@ -215,9 +256,9 @@ class BiClassifier(TextDataClassifier):
         temp['y'] = (temp['y_sum'] > th)
         self.data['y'] = temp['y']
         self.data['X'] = temp[X]
-
         
         print(self.data)
+
         
     def LogisticReg(self, test_percent = 0.2):
         '''
@@ -252,17 +293,25 @@ class BiClassifier(TextDataClassifier):
         self.logReport = metrics.classification_report(test_y, prediction)
         self.confMat = metrics.confusion_matrix(test_y, prediction)
         
-        print(self.logReport)
-        print(self.confMat)
+        print("LR classification report:\n", self.logReport)
+        print("LR confusion matrix\n", self.confMat)
         
 if __name__ == '__main__':
+
     yelp_lr = BiClassifier('yelp.csv')
     yelp_lr.preprocess(X = ['text'], y = ['cool','useful','funny'], threshold = 'mean')
     yelp_lr.BoW(figname = 'lr_hist.png')
+    yelp_lr.LogisticReg()
+
+    # test for stemmer
+    yelp_lr = BiClassifier('yelp.csv')
+    yelp_lr.preprocess(X=['text'], y=['cool', 'useful', 'funny'], threshold='mean')
+    yelp_lr.BoW(figname='lr_hist.png', st=True)
     yelp_lr.LogisticReg()
     
     yelp_mc = MultiClassifier('yelp.csv')
     yelp_mc.preprocess(X = ['text'], y = ['cool','useful','funny'])
     yelp_mc.BoW(figname = 'mc_hist.png', typo_threshold = 1)
     yelp_mc.NB()
+
     
