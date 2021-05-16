@@ -1,10 +1,38 @@
 import pandas as pd
 import numpy as np
+import re
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn import metrics
 from sklearn.naive_bayes import MultinomialNB
+from nltk.stem import PorterStemmer
+
+
+def stem(str_input):
+    '''
+    :param str_input:
+    :return words:
+
+    A stand-alone function that stems a sentence
+    '''
+
+    # took logic from sklearn's default tokenizer
+    # so that all the preprocessing remains the same
+    # while adding a stemmer at the end
+    token_pattern = re.compile(r"(?u)\b\w\w+\b")
+
+    if token_pattern.groups > 1:
+        raise ValueError(
+            "More than 1 capturing group in token pattern. Only a single "
+            "group should be captured."
+        )
+
+    words = token_pattern.findall(str_input)
+    ps = PorterStemmer()
+    words = [ps.stem(word) for word in words]
+    return words
+
 
 class TextDataClassifier():
     def __init__(self, dir):
@@ -41,7 +69,7 @@ class TextDataClassifier():
         '''
         self.data = self.file[X + y]
         
-    def BoW(self, figname, ana = 'word', sw = 'english', lc = True, bi = False, typo_threshold = 1):
+    def BoW(self, figname, ana = 'word', sw = 'english', lc = True, bi = False, st = False, typo_threshold = 1):
         '''
         Process the predictors to prepare for model training
 
@@ -55,6 +83,8 @@ class TextDataClassifier():
             Count Vectorizer parameter lowercase. The default is True.
         bi : TYPE, optional
             Count Vectorizer parameter binary. The default is False.
+        st: BOOL, optional
+            Count Vectorizer parameter stemmer. The default is False.
         typo_threshold : int, optional
             Set the threshold to remove typo. The default is 1.
 
@@ -63,11 +93,18 @@ class TextDataClassifier():
         None.
 
         '''
-        Vec = CountVectorizer(analyzer = ana,
-                              stop_words = sw,
-                              lowercase = lc,
-                              binary = bi)
-        
+        if st:
+            Vec = CountVectorizer(analyzer = ana,
+                                  stop_words = sw,
+                                  lowercase = lc,
+                                  binary = bi,
+                                  tokenizer=stem)
+        else:
+            Vec = CountVectorizer(analyzer=ana,
+                                  stop_words=sw,
+                                  lowercase=lc,
+                                  binary=bi)
+
         data_X_t = Vec.fit_transform(self.data.X.tolist())
         
         features = Vec.get_feature_names()
@@ -269,13 +306,27 @@ class MultiClassifier(TextDataClassifier):
         print(self.confMat)
         
 if __name__ == '__main__':
+    # logistic regression
     yelp_lr = BiClassifier('yelp.csv')
     yelp_lr.preprocess(X = ['text'], y = ['cool','useful','funny'], threshold = 'median')
     yelp_lr.BoW(figname = 'lr_hist.png')
     yelp_lr.LogisticReg()
-    
+
+    # logistic regression with stemmer
+    yelp_lr = BiClassifier('yelp.csv')
+    yelp_lr.preprocess(X=['text'], y=['cool', 'useful', 'funny'], threshold='median')
+    yelp_lr.BoW(figname='lr_hist.png', st=True)
+    yelp_lr.LogisticReg()
+
+    # multi-classifier
     yelp_mc = MultiClassifier('yelp.csv')
     yelp_mc.preprocess(X = ['text'], y = ['cool','useful','funny'])
     yelp_mc.BoW(figname = 'mc_hist.png', typo_threshold = 1)
+    yelp_mc.NB()
+
+    # multi-classifier with stemmer
+    yelp_mc = MultiClassifier('yelp.csv')
+    yelp_mc.preprocess(X=['text'], y=['cool', 'useful', 'funny'])
+    yelp_mc.BoW(figname='mc_hist.png', st=True, typo_threshold=1)
     yelp_mc.NB()
     
