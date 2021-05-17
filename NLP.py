@@ -391,7 +391,7 @@ def main(datafile):
     # logistic regression with no case-folding
     yelp_lr = BiClassifier(datafile)
     yelp_lr.preprocess(X=['text'], y=['cool', 'useful', 'funny'], threshold='mean')
-    yelp_lr.BoW(figname='lr_hist.png', lowercase = False)
+    yelp_lr.BoW(figname='lr_hist.png', lc = False)
     yelp_lr.LogisticReg()
 
     # multi-classifier
