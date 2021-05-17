@@ -379,10 +379,10 @@ def main(datafile):
     yelp_lr = BiClassifier(datafile)
     yelp_lr.preprocess(X=['text'], y=['cool', 'useful', 'funny'], threshold='mean')
     yelp_lr.BoW(figname='lr_hist.png')
-    print("logistic regression baseline:\n")
-    yelp_lr.baseline()
     print("logistic regression prediction:\n")
     yelp_lr.LogisticReg()
+    print("logistic regression baseline:\n")
+    yelp_lr.baseline()
 
     # logistic regression with stemmer
     yelp_lr = BiClassifier(datafile)
@@ -390,14 +390,16 @@ def main(datafile):
     yelp_lr.BoW(figname='lr_hist.png', st = True)
     print("logistic regression prediction with stemmer:\n")
     yelp_lr.LogisticReg()
+    print("logistic regression baseline with stemmer:\n")
     yelp_lr.baseline()
     
     # logistic regression with no case-folding
     yelp_lr = BiClassifier(datafile)
     yelp_lr.preprocess(X=['text'], y=['cool', 'useful', 'funny'], threshold='mean')
     yelp_lr.BoW(figname='lr_hist.png', lc = False)
-    print("logistic regression with no case-folding:\n")
+    print("logistic regression prediction with no case-folding:\n")
     yelp_lr.LogisticReg()
+    print("logistic regression baseline with no case-folding:\n")
     yelp_lr.baseline()
 
     # multi-classifier
@@ -406,23 +408,20 @@ def main(datafile):
     yelp_mc.BoW(figname='mc_hist.png', typo_threshold=1)
     print("Naive Bayes classification:\n")
     yelp_mc.NB()
-    yelp_lr.baseline()
 
     # multi-classifier with stemmer
     yelp_mc = MultiClassifier(datafile)
     yelp_mc.preprocess(X=['text'], y=['cool', 'useful', 'funny'])
     yelp_mc.BoW(figname='mc_hist.png', st = True, typo_threshold = 1)
-    print("Naive Bayes with stemmer:\n")
+    print("Naive Bayes classification with stemmer:\n")
     yelp_mc.NB()
-    yelp_lr.baseline()
     
     # multi-classifier with no case-folding
     yelp_mc = MultiClassifier(datafile)
     yelp_mc.preprocess(X=['text'], y=['cool', 'useful', 'funny'])
     yelp_mc.BoW(figname='mc_hist.png', typo_threshold = 1, lc = False)
-    print("Naive Bayes with no case-folding:\n")
+    print("Naive Bayes classification with no case-folding:\n")
     yelp_mc.NB()
-    yelp_lr.baseline()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
