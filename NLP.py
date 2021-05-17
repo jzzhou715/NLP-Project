@@ -135,7 +135,7 @@ class TextDataClassifier():
         
         self.BoW_noTypo = BoW_removeTypo
         
-        print(self.BoW_noTypo.head)
+        # print(self.BoW_noTypo.head)
         
     def mode(x, na_vals = ""):
         """
@@ -239,7 +239,7 @@ class BiClassifier(TextDataClassifier):
         self.data['X'] = temp[X]
 
         
-        print(self.data)
+        # print(self.data)
         
     def LogisticReg(self, test_percent = 0.2):
         '''
@@ -333,7 +333,7 @@ class MultiClassifier(TextDataClassifier):
         self.data['y'] = temp['y']
         self.data['X'] = temp[X]
         
-        print(self.data.head)
+        # print(self.data.head)
         
     def NB(self, test_percent = 0.2):
         '''
@@ -379,37 +379,44 @@ def main(datafile):
     yelp_lr = BiClassifier(datafile)
     yelp_lr.preprocess(X=['text'], y=['cool', 'useful', 'funny'], threshold='mean')
     yelp_lr.BoW(figname='lr_hist.png')
-    yelp_lr.LogisticReg()
+    print("logistic regression baseline:\n")
     yelp_lr.baseline()
+    print("logistic regression prediction:\n")
+    yelp_lr.LogisticReg()
 
     # logistic regression with stemmer
     yelp_lr = BiClassifier(datafile)
     yelp_lr.preprocess(X=['text'], y=['cool', 'useful', 'funny'], threshold='mean')
     yelp_lr.BoW(figname='lr_hist.png', st = True)
+    print("logistic regression prediction with stemmer:\n")
     yelp_lr.LogisticReg()
     
     # logistic regression with no case-folding
     yelp_lr = BiClassifier(datafile)
     yelp_lr.preprocess(X=['text'], y=['cool', 'useful', 'funny'], threshold='mean')
     yelp_lr.BoW(figname='lr_hist.png', lc = False)
+    print("logistic regression with no case-folding:\n")
     yelp_lr.LogisticReg()
 
     # multi-classifier
     yelp_mc = MultiClassifier(datafile)
     yelp_mc.preprocess(X=['text'], y=['cool', 'useful', 'funny'])
     yelp_mc.BoW(figname='mc_hist.png', typo_threshold=1)
+    print("Naive Bayes classification:\n")
     yelp_mc.NB()
 
     # multi-classifier with stemmer
     yelp_mc = MultiClassifier(datafile)
     yelp_mc.preprocess(X=['text'], y=['cool', 'useful', 'funny'])
     yelp_mc.BoW(figname='mc_hist.png', st = True, typo_threshold = 1)
+    print("Naive Bayes with stemmer:\n")
     yelp_mc.NB()
     
     # multi-classifier with no case-folding
     yelp_mc = MultiClassifier(datafile)
     yelp_mc.preprocess(X=['text'], y=['cool', 'useful', 'funny'])
     yelp_mc.BoW(figname='mc_hist.png', typo_threshold = 1, lc = False)
+    print("Naive Bayes with no case-folding:\n")
     yelp_mc.NB()
 
 if __name__ == '__main__':
