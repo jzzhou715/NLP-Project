@@ -65,7 +65,8 @@ class TextDataClassifier():
             Post stemming list.
 
         '''
-        
+        # codes partially taken from the logic of sklearn's CountVectorizer's source code
+        # so that all the other parameters would keep the same while being stemmed
         token_pattern = re.compile(r"(?u)\b\w\w+\b")
     
         if token_pattern.groups > 1:
@@ -138,14 +139,14 @@ class TextDataClassifier():
         
     def mode(x, na_vals = ""):
         """
-        A class method to calculate the mode of a iterable array-like item.
+        A class method to calculate the mode of an iterable array-like item.
 
         Parameters
         ----------
         x : Iterable array-like item
             The numeric values of which the mode we be calculated from.
         na_vals : str, int, float or bool, optional
-            Value in source file that represesnts NA or missing data. The 
+            Value in source file that represents N/A or missing data. The
             default is self.naChar. The default is "".
 
         Returns
@@ -209,8 +210,8 @@ class BiClassifier(TextDataClassifier):
             Column names that consists of predictors.
         y : str
             Column names that consists of response variable.
-        threshold : TYPE
-            A threshold to turn reponse into a binary variable.
+        threshold : int
+            A threshold to turn response into a binary variable.
 
         Returns
         -------
@@ -340,7 +341,7 @@ class MultiClassifier(TextDataClassifier):
 
         Parameters
         ----------
-        test_percent : TYPE, optional
+        test_percent : float, optional
             DESCRIPTION. The default is 0.2.
 
         Returns
@@ -373,6 +374,7 @@ class MultiClassifier(TextDataClassifier):
 
 
 def main(datafile):
+    # test codes
     # logistic regression
     yelp_lr = BiClassifier(datafile)
     yelp_lr.preprocess(X=['text'], y=['cool', 'useful', 'funny'], threshold='mean')
@@ -386,10 +388,10 @@ def main(datafile):
     yelp_lr.BoW(figname='lr_hist.png', st = True)
     yelp_lr.LogisticReg()
     
-    # logistic regression with stemmer lc
+    # logistic regression with no case-folding
     yelp_lr = BiClassifier(datafile)
     yelp_lr.preprocess(X=['text'], y=['cool', 'useful', 'funny'], threshold='mean')
-    yelp_lr.BoW(figname='lr_hist.png', st = True, lowercase = False)
+    yelp_lr.BoW(figname='lr_hist.png', lowercase = False)
     yelp_lr.LogisticReg()
 
     # multi-classifier
@@ -404,10 +406,10 @@ def main(datafile):
     yelp_mc.BoW(figname='mc_hist.png', st = True, typo_threshold = 1)
     yelp_mc.NB()
     
-    # multi-classifier with stemmer lc
+    # multi-classifier with no case-folding
     yelp_mc = MultiClassifier(datafile)
     yelp_mc.preprocess(X=['text'], y=['cool', 'useful', 'funny'])
-    yelp_mc.BoW(figname='mc_hist.png', st = True, typo_threshold = 1, lc = False)
+    yelp_mc.BoW(figname='mc_hist.png', typo_threshold = 1, lc = False)
     yelp_mc.NB()
 
 if __name__ == '__main__':
