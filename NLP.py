@@ -10,31 +10,6 @@ from sklearn.naive_bayes import MultinomialNB
 from nltk.stem import PorterStemmer
 
 
-def stem(str_input):
-    '''
-    :param str_input:
-    :return words:
-
-    A stand-alone function that stems a sentence
-    '''
-
-    # took logic from sklearn's default tokenizer
-    # so that all the preprocessing remains the same
-    # while adding a stemmer at the end
-    token_pattern = re.compile(r"(?u)\b\w\w+\b")
-
-    if token_pattern.groups > 1:
-        raise ValueError(
-            "More than 1 capturing group in token pattern. Only a single "
-            "group should be captured."
-        )
-
-    words = token_pattern.findall(str_input)
-    ps = PorterStemmer()
-    words = [ps.stem(word) for word in words]
-    return words
-
-
 class TextDataClassifier():
     def __init__(self, dir):
         '''
@@ -69,6 +44,30 @@ class TextDataClassifier():
 
         '''
         self.data = self.file[X + y]
+    
+    def stem(str_input):
+        '''
+        :param str_input:
+        :return words:
+    
+        A stand-alone function that stems a sentence
+        '''
+    
+        # took logic from sklearn's default tokenizer
+        # so that all the preprocessing remains the same
+        # while adding a stemmer at the end
+        token_pattern = re.compile(r"(?u)\b\w\w+\b")
+    
+        if token_pattern.groups > 1:
+            raise ValueError(
+                "More than 1 capturing group in token pattern. Only a single "
+                "group should be captured."
+            )
+    
+        words = token_pattern.findall(str_input)
+        ps = PorterStemmer()
+        words = [ps.stem(word) for word in words]
+        return words
         
     def BoW(self, figname, ana = 'word', sw = 'english', lc = True, bi = False, st = False, typo_threshold = 1):
         '''
@@ -99,12 +98,12 @@ class TextDataClassifier():
                                   stop_words = sw,
                                   lowercase = lc,
                                   binary = bi,
-                                  tokenizer=stem)
+                                  tokenizer = TextDataClassifier.stem)
         else:
-            Vec = CountVectorizer(analyzer=ana,
-                                  stop_words=sw,
-                                  lowercase=lc,
-                                  binary=bi)
+            Vec = CountVectorizer(analyzer = ana,
+                                  stop_words = sw,
+                                  lowercase = lc,
+                                  binary = bi)
 
         data_X_t = Vec.fit_transform(self.data.X.tolist())
         
@@ -126,6 +125,52 @@ class TextDataClassifier():
         self.BoW_noTypo = BoW_removeTypo
         
         print(self.BoW_noTypo.head)
+        
+    def mode(x, na_vals = ""):
+        """
+        A class method to calculate the mode of a iterable array-like item.
+
+        Parameters
+        ----------
+        x : Iterable array-like item
+            The numeric values of which the mode we be calculated from..
+        na_vals : str, int, float or bool, optional
+            Value in source file that represesnts NA or missing data. The 
+            default is self.naChar. The default is "".
+
+        Returns
+        -------
+        mode_name : str, int, float, bool
+            The mode of the x.
+
+        """
+        
+        # Check if x is an iterable object
+        try:
+            iterator = iter(x)
+        except:
+            TypeError('Object must be iterable')
+
+        else:
+        
+            #Creates a dictionary with each value in x and its counts
+            dic = {}
+            for i in x:
+                if i in dic and i != na_vals:
+                    dic[i] += 1
+                else:
+                    dic[i] = 1
+            mode_count = 0
+            mode_name = None
+            
+            # Iterates through the dictionary and returns the key with biggest
+            # value
+            for key in dic:
+                if dic[key] > mode_count:
+                    mode_count = dic[key]
+                    mode_name = key
+            
+            return mode_name
         
 class BiClassifier(TextDataClassifier):
     def __init__(self, dir):
@@ -201,25 +246,35 @@ class BiClassifier(TextDataClassifier):
         '''
         
         train, test = train_test_split(self.BoW_noTypo, test_size = test_percent)
-        train_y = train["y"]
+        self.train_y = train["y"]
         
-        train_X = train.drop(["y"], axis = 1)
+        self.train_X = train.drop(["y"], axis = 1)
         
-        test_y = test["y"]
+        self.test_y = test["y"]
         
-        test_X = test.drop(["y"], axis = 1)
+        self.test_X = test.drop(["y"], axis = 1)
         
         log = LogisticRegression()
         
-        log.fit(train_X, train_y)
+        log.fit(self.train_X, self.train_y)
         
-        prediction = log.predict(test_X)
-        
-        self.logReport =  metrics.classification_report(test_y, prediction)
-        self.confMat = metrics.confusion_matrix(test_y, prediction)
+        prediction = log.predict(self.test_X)
+                
+        self.logReport =  metrics.classification_report(self.test_y, prediction)
+        self.confMat = metrics.confusion_matrix(self.test_y, prediction)
         
         print(self.logReport)
         print(self.confMat)
+        
+    def baseline(self):
+        
+        zerorule = TextDataClassifier.mode(self.test_y)
+        
+        self.blReport = metrics.classification_report(self.test_y, [zerorule]*len(self.test_y))
+        self.blconfMat = metrics.confusion_matrix(self.test_y, [zerorule]*len(self.test_y))
+        
+        print(self.blReport)
+        print(self.blconfMat)
 
 class MultiClassifier(TextDataClassifier):
     def __init__(self, dir):
@@ -317,7 +372,7 @@ def main(datafile):
     # logistic regression with stemmer
     yelp_lr = BiClassifier(datafile)
     yelp_lr.preprocess(X=['text'], y=['cool', 'useful', 'funny'], threshold='mean')
-    yelp_lr.BoW(figname='lr_hist.png', st=True)
+    yelp_lr.BoW(figname='lr_hist.png', st = True)
     yelp_lr.LogisticReg()
 
     # multi-classifier
@@ -329,7 +384,7 @@ def main(datafile):
     # multi-classifier with stemmer
     yelp_mc = MultiClassifier(datafile)
     yelp_mc.preprocess(X=['text'], y=['cool', 'useful', 'funny'])
-    yelp_mc.BoW(figname='mc_hist.png', st=True, typo_threshold=1)
+    yelp_mc.BoW(figname='mc_hist.png', st = True, typo_threshold=1)
     yelp_mc.NB()
 
 
@@ -339,3 +394,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     main(args.df)
+
