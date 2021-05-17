@@ -47,15 +47,25 @@ class TextDataClassifier():
     
     def stem(str_input):
         '''
-        :param str_input:
-        :return words:
-    
-        A stand-alone function that stems a sentence
+        A stand-alone function that stems a sentence.
+
+        Parameters
+        ----------
+        str_input : str
+            A string variable to be stemmed.
+
+        Raises
+        ------
+        ValueError
+            Raise ValueError when more than 1 group in token pattern is captured.
+
+        Returns
+        -------
+        words : lst
+            Post stemming list.
+
         '''
-    
-        # took logic from sklearn's default tokenizer
-        # so that all the preprocessing remains the same
-        # while adding a stemmer at the end
+        
         token_pattern = re.compile(r"(?u)\b\w\w+\b")
     
         if token_pattern.groups > 1:
@@ -81,7 +91,7 @@ class TextDataClassifier():
             Count Vectorizer parameter stop_words. The default is 'english'.
         lc : str, optional
             Count Vectorizer parameter lowercase. The default is True.
-        bi : TYPE, optional
+        bi : BOOL, optional
             Count Vectorizer parameter binary. The default is False.
         st: BOOL, optional
             Count Vectorizer parameter stemmer. The default is False.
@@ -133,7 +143,7 @@ class TextDataClassifier():
         Parameters
         ----------
         x : Iterable array-like item
-            The numeric values of which the mode we be calculated from..
+            The numeric values of which the mode we be calculated from.
         na_vals : str, int, float or bool, optional
             Value in source file that represesnts NA or missing data. The 
             default is self.naChar. The default is "".
@@ -368,11 +378,18 @@ def main(datafile):
     yelp_lr.preprocess(X=['text'], y=['cool', 'useful', 'funny'], threshold='mean')
     yelp_lr.BoW(figname='lr_hist.png')
     yelp_lr.LogisticReg()
+    yelp_lr.baseline()
 
     # logistic regression with stemmer
     yelp_lr = BiClassifier(datafile)
     yelp_lr.preprocess(X=['text'], y=['cool', 'useful', 'funny'], threshold='mean')
     yelp_lr.BoW(figname='lr_hist.png', st = True)
+    yelp_lr.LogisticReg()
+    
+    # logistic regression with stemmer lc
+    yelp_lr = BiClassifier(datafile)
+    yelp_lr.preprocess(X=['text'], y=['cool', 'useful', 'funny'], threshold='mean')
+    yelp_lr.BoW(figname='lr_hist.png', st = True, lowercase = False)
     yelp_lr.LogisticReg()
 
     # multi-classifier
@@ -384,9 +401,14 @@ def main(datafile):
     # multi-classifier with stemmer
     yelp_mc = MultiClassifier(datafile)
     yelp_mc.preprocess(X=['text'], y=['cool', 'useful', 'funny'])
-    yelp_mc.BoW(figname='mc_hist.png', st = True, typo_threshold=1)
+    yelp_mc.BoW(figname='mc_hist.png', st = True, typo_threshold = 1)
     yelp_mc.NB()
-
+    
+    # multi-classifier with stemmer lc
+    yelp_mc = MultiClassifier(datafile)
+    yelp_mc.preprocess(X=['text'], y=['cool', 'useful', 'funny'])
+    yelp_mc.BoW(figname='mc_hist.png', st = True, typo_threshold = 1, lc = False)
+    yelp_mc.NB()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
