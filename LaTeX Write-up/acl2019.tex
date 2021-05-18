@@ -1,0 +1,314 @@
+%
+% File acl2019.tex
+%
+%% Based on the style files for ACL 2018, NAACL 2018/19, which were
+%% Based on the style files for ACL-2015, with some improvements
+%%  taken from the NAACL-2016 style
+%% Based on the style files for ACL-2014, which were, in turn,
+%% based on ACL-2013, ACL-2012, ACL-2011, ACL-2010, ACL-IJCNLP-2009,
+%% EACL-2009, IJCNLP-2008...
+%% Based on the style files for EACL 2006 by 
+%%e.agirre@ehu.es or Sergi.Balari@uab.es
+%% and that of ACL 08 by Joakim Nivre and Noah Smith
+
+\documentclass[11pt,a4paper]{article}
+\usepackage[hyperref]{acl2019}
+\usepackage{times}
+\usepackage{latexsym}
+\usepackage{multirow}
+
+\usepackage{url}
+
+%\aclfinalcopy % Uncomment this line for the final submission
+%\def\aclpaperid{***} %  Enter the acl Paper ID here
+
+%\setlength\titlebox{5cm}
+% You can expand the titlebox if you need extra space
+% to show all the authors. Please do not make the titlebox
+% smaller than 5cm (the original size); we will check this
+% in the camera-ready version and ask you to change it back.
+
+\newcommand\BibTeX{B\textsc{ib}\TeX}
+
+\title{Predicting Yelp Review Popularity and Classifying Type of Votes}
+
+\author{Ulie Xu \\
+  Georgetown University / Address line 1 \\
+  Affiliation / Address line 2 \\
+  Affiliation / Address line 3 \\
+  \texttt{lx59@georgetown.edu} \\\And
+  Jizhou Zhou \\
+  Georgetown University / Address line 1 \\
+  Affiliation / Address line 2 \\
+  Affiliation / Address line 3 \\
+  \texttt{jz708@georgetown.edu} \\}
+
+\date{}
+
+\begin{document}
+\maketitle
+\begin{abstract}
+  Reaction upvotes on Yelp indicates the helpfulness, informativeness, and/or entertainment the review brings to readers who come across the review. This paper uses a Logistic Regression model to predict Yelp review popularity with review data by aggregating reaction votes of “useful,” “funny,” and “cool” to indicate popularity. In addition, a Naive Bayes multi-classifier model is also used to classify which reaction upvote is the best indicator of review popularity. The dataset is a Yelp review comma separated file from Kaggle with 10,000 reviews and 10 columns of review features. Our Logistic Regression model fairly improves from the baseline model, and the Naive Bayes model shows that the “useful” reaction vote is the best indicator of popularity.
+\end{abstract}
+
+\section{Introduction}
+
+Yelp is a well-known website as well as mobile application for businesses such as restaurants, shopping, and entertainment services. As of February 2021, Yelp has acquired more than 178 million unique visitors monthly across mobile and desktop. The nature of users posting reviews for businesses makes Yelp an ideal platform for researchers in computational linguistics to analyze textual contents with its data using natural language processing, in addition to the great accessibility of Yelp’s textual data thanks to their open dataset.
+
+A complete Yelp review consists of multiple features, including the name of the reviewer, reviewer’s location, the date of the post, the star rating of the restaurant by the reviewer, a body of review text, and three reaction upvote buttons under the textbox that allows other users who have read this review to indicate their reactions: whether they think this review is “useful,” “funny,” or “cool.” 
+
+This research project aims to predict Yelp reviews’ popularity with the review text data and classify the type of votes out of the three that would be the best indicator of popularity. The popularity of a review would be determined by the aggregation of all three reaction votes under a review (“useful,” “funny,” and “cool”).
+
+\section{Background}
+Most literature investigating Yelp datasets has been the prediction of star ratings based on the textual reviews. Nabiha Asghar \cite{DBLP:journals/corr/Asghar16} attempted to solve the review rating prediction problem as a multi-class classification problem with Yelp review data. Asghar built 16 different models by combining four feature extraction methods: unigram, bigram, trigram, and Latent Semantic Indexing, as well as four machine learning algorithms: logistics regression, Naive Bayes, perceptrons, and linear Support Vector Classification. 
+
+A great deal of past research also relied on sentiment analysis to extract features from the review text. Qu, Ifrim, and Weikum  \cite{10.5555/1873781.1873884} proposed a bag-of-opinions feature extraction method, which extracts opinions that consist of a root word, a modifier or a negation word from the review dataset. Then they computed their sentiment score, predicted a review’s rating by aggregating the scores of opinions, and combined it with a domain-dependent unigram model. Yu, Zhou, Zhang, and Cao \cite{yu2017identifying} also deployed sentiment analysis on identifying restaurant features on Yelp reviews. They used a support vector machine (SVM) model to differentiate positive and negative words of each review. Word scores generated from the SVM models, either positive or negative, were then analyzed. The results were reported by dividing the positive and negative reviews, and the restaurants were divided into types of cuisines for comparison. 
+
+Past research with similar objectives as the present research have been conducted to predict helpfulness, one of the three reaction aspects of the reviews. Luo and Xu \cite{su11195254} extracted the main aspects of Yelp reviews, including food/taste, experience, location, and value, with Latent Dirichlet Allocation (LDA), and assigned positive or negative sentiment to each extracted aspect. Due to the lack of votes on “useful,” Luo and Xu used combinations of machine learning algorithms including 1. Naive Bates and logistic regression; 2. Naive Bayes and Support Vector Machine; 3. Support Vector Machine accompanied by a Fuzzy Domain Ontology algorithm, to solve the binary classification of review helpfulness problem based on emotion data and best performing features. Lee, Hu, and Lu \cite{LEE2018436} used three categories of features to investigate a review’s helpfulness: review quality, review sentiment, and review characteristics. The authors used four classification techniques including decision trees, logistic regression, random forest, and Support Vector Machine, and concluded that review characteristics are good indicators of review helpfulness while review quality and review sentiment are poor indicators of review helpfulness.
+
+In summarization, much of the literature using Yelp review data used machine learning models to extract non-textual features such as location, experience, and reviewer data to predict reviews’ helpfulness. Within research on review texts, most research was conducted to predict the star ratings of the review. Therefore, this present research attempts to fill a gap in the absence of literature that predicts review popularity from textual data based on reaction upvotes.
+
+\section{Methodology}
+Two models were used to train and test the dataset including Logistics Regression for binary classification and Naive Bayes for multi-class classification.
+
+\subsection{Logistic Regression}
+A Logistic Regression model uses a logistic function to model a binary dependent variable with two possible values of 0 and 1. The Yelp review data was first vectorized into a sparse matrix with each review as a bag of words as well as their counts converted to a binary variable. In other words, the vote counts of “useful,” “funny,” and “cool” were summed into one single category of “popularity”, and then converted to a binary variable. All numbers above the mean number of votes were labeled as popular, and all numbers below the mean number of votes were labeled as unpopular. This is due to the fact that the distribution of the number of votes received were assumed to be normal, therefore, mean and median were approximated the same. Finally, the normalized review text data was used as predictors to train the Logistic Regression model. Train and test data was split into 80\% and 20\%.
+
+\subsection{Naive Bayes}
+A Naive Bayes classifier, assuming that the presence of a particular feature in a class is unrelated to the presence of other features, predicts the probability of different classes based on various attributes. The Naive Bayes classifier was implemented to test out the type of votes that would be the most indicative of a popular review. For this reason, rows that were labeled as unpopular were eliminated from the Naive Bayes model dataset as they do not contribute enough meaningful information. The vote counts were also converted into a binary variable by labeling the highest-count type as 1, and the remaining two reaction types as 0. The same corpus used for the Logistic Regression model was also used as predictors for the Naive Bayes classifier. Train and test data was split into 80\% and 20\% respectively as well.
+
+\section{Experiments}
+\subsection{Dataset}
+The dataset is a 7.72 MB Yelp review comma separated file from Kaggle, last updated in 2018 by the author Omkar Sabnis. The reviews’ dates span from 2007 till 2012 and consist of a single domain of only restaurant review data. It contains 10,000 reviews and 10 columns, with columns corresponding to features of the review: business ID, date, review ID, the star rating, the body of review text, type, user ID, and the three reaction votes: cool, useful, and funny. There are no annotations on the datafile.
+
+\subsection{Preprocessing}
+Unnecessary columns on the csv file such as business ID and review ID were removed, leaving the four fields that are only of concern to this project: the body of review text and the three reaction vote counts. The preprocessing choices were made specifically tailored to the nature of Yelp. Because Yelp is a free-form review platform that allows users to type their opinions with a large degree of freedom, there might be cases where users excessively use capitalization or punctuation marks to express their opinions such as frustration and dislike towards a business. Therefore, words in a review were separated by space and punctuations were removed to generate a bag of words for each review. Preprocessing choices such as case-folding, stemming, and stop-words removal were also implemented so that they can be toggled on and off to test out the differences in the final results. A design choice was also made to eliminate words that only occur once throughout the reviews because they are most likely typos.
+
+\subsection{Evaluation Metric}
+Both Logistic Regression and Naive Bayes models were evaluated on their accuracy, precision, recall, F1 scores, as well as their confusion matrices. The results were also compared to a maximum-likelihood baseline that simply labels all reviews as unpopular as it was the majority label of the reviews. Features such as stemming and case-folding were toggled on and off to test out their impacts on test results.
+The Logistic Regression model slightly outperformed the baseline model by correctly predicting more popular reviews. From the Naive Bayes classification, the reaction vote of “useful” has the highest precision, recall, and F1 scores to be the most indicative of popularity.
+
+\section{Discussion and Conclusion}
+
+Overall, Logistic Regression proves to be a good model to predict the popularity of Yelp review votes, as shown in Table 3, 6, and 9. The Logistic Regression model after stemmer slightly outperforms all other parameter combinations. Compared to the maximum-likelihood baseline, the confusion matrix (Table 2) shows that the Logistic Regression model predicts more popular reviews correctly, and the prediction model also has a 0.06 increase in precision of predicting unpopular reviews and 0.50 increase in precision of predicting popular reviews. The baseline model has a recall of 1 for unpopular reviews due to its nature of all-unpopular labeling, while the Logistic Regression model’s recall does not decrease by much.
+
+After stemming, both the baseline model and Logistic Regression model have a 0.01 increase in precision of unpopular prediction compared to before stemming. As a result, the Logistic Regression model after stemming has the highest precision in predicting unpopular reviews out of all the parameter combinations in the research. However, the precision of popular reviews decreased by 1 percent, while the recall of popular review and accuracy remained the same as the Logistic Regression model prior to stemming. As a result, stemming does not significantly impact the Logistics Regression model in predicting review popularity. This might be due to the diversity in language used in Yelp reviews, and thus stemming does not bring about a significant impact in word frequency counts.
+
+Case-folding was also toggled on and off to test out the impact of upper- and lower-case usages in prediction of review popularity. As shown in Table 7 and 8, the Logistic Regression model without case-folding does a surprisingly good job in predicting the popularity of reviews based on the precision of popular and unpopular reviews and the accuracy score. This indicates that case-folding might not be a necessary parameter in predicting review popularity, and in fact, it might be worthy to investigate the impact of having upper- and lower-case letters in the review texts on reaction votes.
+
+Results from the Naive Bayes shows that the precision, recall and F1 of the reaction vote “useful” are all more than double higher than those of “cool” and “funny.” Additionally, as displayed in table 11, the precision, recall and F1 score of “useful” has a 1-percent increase after stemming. This might suggest that stemming does have an advantage in predicting review popularity among the votes that are thought to be useful, indicating that the “useful” votes might share more similarities in the usage of content words in language than other reviews. However, we should also interpret the statistics with caution considering the size of “useful” is also more than triple of the sum of the “cool” and “funny” counts. Thus, there might not have been enough sample size for “cool” and “funny” to be accurately classified.
+
+\section{Limitation}
+There were several limitations for this research. Besides the textual data of review itself, the factors determining the popularity of a review would also depend on the location, restaurant popularity, reviewer popularity, and reviewers’ characteristics such as identity, occupation, and whatever they choose to disclose on their profiles. As a result, in order to develop a comprehensive model to predict reviews’ popularity, we need machine learning models that also take into account these characteristics, on top of our NLP models, such as the examples referred to in our literature review.
+
+Another limitation comes from preprocessing, by removing punctuation from our texts, we might risk losing meaningful contents that are relevant to our popularity prediction. For example, a user that uses an excessive amount of punctuation might attract more popularity by invoking the funny reaction from readers.
+
+The final limitation is our bag of words feature extraction method. By using a unigram model, we inherently lose our ability to capture relationships between two or more words that are closer in syntactic or semantic relationship: for example, a word and its modifier like “delicious pizza”, or a word and its negation like “not clean.”
+
+As a result, future work can take on the direction to expand on this project to investigate the impact of case-folding in preprocessing with more review datasets to compare the prediction results between lowercasing text data versus leaving uppercase letters as they are, as well as investigating the removal of punctuation marks on the impact of predictions. Another potential direction is to research on different feature extraction methods such as bigram and trigram models, and whether they improve prediction results from the bag of words models.
+
+\clearpage
+\section{Table and Charts}
+
+\begin{table}[h!]
+\centering
+ \begin{tabular}{|c c c c c|} 
+ \hline
+ & {\bf Precision} & {\bf Recall} & {\bf F1} & {\bf Size} \\ [0.5ex] 
+ \hline\hline
+ {\bf Unpopular } & 0.66 & 1.00 & 0.80 & 1324\\ 
+ {\bf Popular } & 0.00 & 0.00 & 0.00 & 676 \\
+ {\bf Accuracy } & & & 0.64 & 2000 \\
+ {\bf Macro } & 0.33 & 0.50 & 0.40 & 2000 \\
+ {\bf Weighted } & 0.44 & 0.66 & 0.53 & 2000\\ [1ex] 
+ \hline
+ \end{tabular}
+ \caption{\label{tab:Table 1}Baseline for Logistic Regression to Classify Popular Votes Using Bag-of-words.}
+\end{table}
+
+\begin{table}[h!]
+\centering
+ \begin{tabular}{|c c c c c|} 
+ \hline
+ & {\bf Precision} & {\bf Recall} & {\bf F1} & {\bf Size} \\ [0.5ex] 
+ \hline\hline
+  {\bf Unpopular } & 0.72 & 0.79 & 0.76 & 1324\\ 
+  {\bf Popular } & 0.50 & 0.41 & 0.45 & 676 \\
+  {\bf Accuracy } & & & 0.66 & 2000 \\
+  {\bf Macro } & 0.61 & 0.60 & 0.60 & 2000 \\
+  {\bf Weighted } & 0.65 & 0.66 & 0.65 & 2000\\ [1ex] 
+ \hline
+ \end{tabular}
+  \caption{\label{tab:Table 2}Model Performance for Logistic Regression to Classify Popular Votes Using Bag-of-words.}
+\end{table}
+
+\begin{table}[h!]
+\begin{tabular}{cc|cc}
+\multicolumn{2}{c}{}
+    & \multicolumn{2}{c}{\bf Predicted} \\
+    & & Unpopular & Popular \\ 
+    \cline{2-4}
+\multirow{2}{*}{{\bf Actual}}
+    & Unpopular   & 1046 & 278 \\
+    & Popular    & 399 & 277  \\ 
+    \cline{2-4}
+\end{tabular}
+  \caption{\label{tab:Table 3}Confusion Matrix for Logistic Regression to Classify Popular Votes Using Bag-of-words.}
+\end{table}
+
+\begin{table}[h!]
+\centering
+ \begin{tabular}{|c c c c c|} 
+ \hline
+ & {\bf Precision} & {\bf Recall} & {\bf F1} & {\bf Size} \\ [0.5ex] 
+ \hline\hline
+ {\bf Unpopular } & 0.67 & 1.00 & 0.80 & 1331\\ 
+ {\bf Popular } & 0.00 & 0.00 & 0.00 & 669 \\
+ {\bf Accuracy } & & & 0.67 & 2000 \\
+ {\bf Macro } & 0.33 & 0.50 & 0.40 & 2000 \\
+ {\bf Weighted } & 0.44 & 0.67 & 0.53 & 2000\\ [1ex] 
+ \hline
+ \end{tabular}
+   \caption{\label{tab:Table 4}Baseline for Logistic Regression to Classify Popular Votes Using Bag-of-words.}
+\end{table}
+
+\begin{table}[h!]
+\centering
+ \begin{tabular}{|c c c c c|} 
+ \hline
+ & {\bf Precision} & {\bf Recall} & {\bf F1} & {\bf Size} \\ [0.5ex] 
+ \hline\hline
+ {\bf Unpopular } & 0.73 & 0.78 & 0.75 & 1331\\ 
+ {\bf Popular } & 0.49 & 0.41 & 0.44 & 669 \\
+ {\bf Accuracy } & & & 0.66 & 2000 \\
+ {\bf Macro } & 0.61 & 0.60 & 0.60 & 2000 \\
+ {\bf Weighted } & 0.64 & 0.66 & 0.65 & 2000\\ [1ex] 
+ \hline
+ \end{tabular}
+\caption{\label{tab:Table 5}Model Performance for Logistic Regression to Classify Popular Votes Using Bag-of-words with Stemming.}
+\end{table}
+
+\begin{table}
+\begin{tabular}{cc|cc}
+\multicolumn{2}{c}{}
+    & \multicolumn{2}{c}{\bf Predicted} \\
+    & & Unpupolar & Popular \\ 
+    \cline{2-4}
+\multirow{2}{*}{{\bf Actual}}
+    & Unpopular   & 1012 & 319 \\
+    & Popular    & 395 & 274 \\ 
+    \cline{2-4}
+\end{tabular}
+\caption{\label{tab:Table 6}Confusion Matrix for Logistic Regression to Classify Popular Votes Using Bag-of-words with Stemming.}
+\end{table}
+
+\begin{table}[h!]
+\centering
+ \begin{tabular}{|c c c c c|} 
+ \hline
+ & {\bf Precision} & {\bf Recall} & {\bf F1} & {\bf Size} \\ [0.5ex] 
+ \hline\hline
+ {\bf Unpopular } & 0.64 & 1.00 & 0.78 & 1288\\ 
+ {\bf Popular } & 0.00 & 0.00 & 0.00 & 712 \\
+ {\bf Accuracy } & & & 0.64 & 2000 \\
+ {\bf Macro } & 0.32 & 0.50 & 0.39 & 2000 \\
+ {\bf Weighted } & 0.41 & 0.64 & 0.50 & 2000\\ [1ex] 
+ \hline
+ \end{tabular}
+ \caption{\label{tab:Table 7}Baseline for Logistic Regression to Classify Popular Votes Using Bag-of-words.}
+\end{table}
+
+\begin{table}[h!]
+\centering
+ \begin{tabular}{|c c c c c|} 
+ \hline
+ & {\bf Precision} & {\bf Recall} & {\bf F1} & {\bf Size} \\ [0.5ex] 
+ \hline\hline
+ {\bf Unpopular } & 0.70 & 0.79 & 0.74 & 1288\\ 
+ {\bf Popular } & 0.50 & 0.38 & 0.43 & 712 \\
+ {\bf Accuracy } & & & 0.64 & 2000 \\
+ {\bf Macro } & 0.60 & 0.58 & 0.58 & 2000 \\
+ {\bf Weighted } & 0.63 & 0.64 & 0.63 & 2000\\ [1ex] 
+ \hline
+ \end{tabular}
+  \caption{\label{tab:Table 8}Model Performance for Logistic Regression to Classify Popular Votes Using Bag-of-words with Case-sensitive Features.}
+
+\end{table}
+
+\clearpage
+\begin{table}
+\begin{tabular}{cc|cc}
+\multicolumn{2}{c}{}
+    & \multicolumn{2}{c}{\bf Predicted} \\
+    & & Unpopular & Popular \\ 
+    \cline{2-4}
+\multirow{2}{*}{{\bf Actual}}
+    & Unpopular   & 1005 & 283 \\
+    & Popular    & 441 & 271 \\ 
+    \cline{2-4}
+\end{tabular}
+  \caption{\label{tab:Table 9}Confusion Matrix for Logistic Regression to Classify Popular Votes Using Bag-of-words with Case-sensitive Features.}
+\end{table}
+
+\begin{table}[h!]
+\centering
+ \begin{tabular}{|c c c c c|} 
+ \hline
+ & {\bf Precision} & {\bf Recall} & {\bf F1} & {\bf Size} \\ [0.5ex] 
+ \hline\hline
+ {\bf Cool } & 0.28 & 0.12 & 0.17 & 93\\ 
+ {\bf Funny } & 0.36 & 0.18 & 0.24 & 133 \\
+ {\bf Useful } & 0.78 & 0.91 & 0.84 & 700 \\
+
+ {\bf Accuracy } & & & 0.73 & 926 \\
+ {\bf Macro } & 0.47 & 0.40 & 0.42 & 926 \\
+ {\bf Weighted } & 0.67 & 0.73 & 0.69 & 926\\ [1ex] 
+ \hline
+ \end{tabular}
+   \caption{\label{tab:Table 10}Model Performance for Naive Bayes to Classify Type of Votes Using Bag-of-words.}
+
+\end{table}
+
+\begin{table}[h!]
+\centering
+ \begin{tabular}{|c c c c c|} 
+ \hline
+ & {\bf Precision} & {\bf Recall} & {\bf F1} & {\bf Size} \\ [0.5ex] 
+ \hline\hline
+ {\bf Cool } & 0.14 & 0.05 & 0.07 & 100\\ 
+ {\bf Funny } & 0.41 & 0.22 & 0.28 & 120 \\
+ {\bf Useful } & 0.79 & 0.92 & 0.85 & 706 \\
+
+ {\bf Accuracy } & & & 0.74 & 926 \\
+ {\bf Macro } & 0.45 & 0.40 & 0.40 & 926 \\
+ {\bf Weighted } & 0.67 & 0.74 & 0.69 & 926\\ [1ex] 
+ \hline
+ \end{tabular}
+    \caption{\label{tab:Table 11}Model Performance for Logistic Regression to Classify Type of Votes Using Bag-of-words with Stemming.}
+
+\end{table}
+
+\begin{table}[h!]
+\centering
+ \begin{tabular}{|c c c c c|} 
+ \hline
+ & {\bf Precision} & {\bf Recall} & {\bf F1} & {\bf Size} \\ [0.5ex] 
+ \hline\hline
+ {\bf Cool } & 0.20 & 0.08 & 0.12 & 97\\ 
+ {\bf Funny } & 0.35 & 0.21 & 0.26 & 111 \\
+ {\bf Useful } & 0.80 & 0.92 & 0.85 & 718 \\
+
+ {\bf Accuracy } & & & 0.74 & 926 \\
+ {\bf Macro } & 0.45 & 0.40 & 0.41 & 926 \\
+ {\bf Weighted } & 0.68 & 0.74 & 0.71 & 926\\ [1ex] 
+ \hline
+ \end{tabular}
+     \caption{\label{tab:Table 12}Model Performance for Logistic Regression to Classify Type of Votes Using Bag-of-words with Case-sensitive Features.}
+
+\end{table}
+
+\clearpage
+\bibliography{acl2019}
+\bibliographystyle{acl_natbib}
+
+\end{document}
