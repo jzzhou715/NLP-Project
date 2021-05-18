@@ -184,6 +184,14 @@ class TextDataClassifier():
             return mode_name
     
     def baseline(self):
+        '''
+        A class method to compute the baseline of the model.
+
+        Returns
+        -------
+        None.
+
+        '''
         
         zerorule = TextDataClassifier.mode(self.test_y)
         
